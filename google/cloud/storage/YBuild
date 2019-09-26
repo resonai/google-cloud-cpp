@@ -181,13 +181,20 @@ ExtCommand(
   },
   cachable=True
 )
+CppLib(
+  'nlohmann_json',
+  sources=[],
+  headers = ['internal/nlohmann_json.hpp'],
+  deps = [':nlohmann_json_include_hierarchy'],
+  in_buildenv='//devops:ywz-buildenv-base',
+)
 
 
 CppLib('storage_client',
        sources=storage_client_srcs,
        headers=storage_client_hdrs,
        deps = [
-         #":nlohmann_json",
+         ":nlohmann_json",
          "..:google_cloud_cpp_common",
          #"@boringssl//:crypto",
          #"@boringssl//:ssl",
