@@ -56,46 +56,25 @@ google_cloud_cpp_common_srcs = [
     "terminate_handler.cc",
 ]
 
-# genrule(
-#     name = "generate_build_info",
-#     srcs = ["internal/build_info.cc.in"],
-#     outs = ["internal/build_info.cc"],
-#     cmd = """
-# V=$$(git rev-parse --short HEAD 2>/dev/null || echo "unknown");
-# sed -e "s;@CMAKE_CXX_FLAGS@;$(CC_FLAGS);" \
-#     -e "s;\\$${CMAKE_CXX_FLAGS_.*};$(COMPILATION_MODE);" \
-#     -e "s;@GOOGLE_CLOUD_CPP_GIT_HEAD@;$${V};" < $< > $@
-#   """,
-#     toolchains = [
-#         "@bazel_tools//tools/cpp:current_cc_toolchain",
-#         "@bazel_tools//tools/cpp:cc_flags",
-#     ],
+# ExtCommand(
+#   'generate_build_info',
+#   cmd = ['bash', '-c',
+#          'V=$(git rev-parse --short HEAD 2>/dev/null || echo "unknown"); sed -e "s;@CMAKE_CXX_FLAGS@;$CC_FLAGS;"  -e "s;.{CMAKE_CXX_FLAGS_.*};$COMPILATION_MODE;"  -e "s;@GOOGLE_CLOUD_CPP_BUILD_METADATA@;${V};"  < internal/build_info.cc.in >  internal/build_info.cc'
+#   ],
+#   in_buildenv='//devops:ywz-buildenv-base',
+#   work_dir='third_party/google-cloud-cpp/google/cloud/',
+#   cmd_env={
+#     'CC_FLAGS': '-stdlib=libc++',
+#     'COMPILATION_MODE': 'release',  #TODo now
+#   },
+#   #cachable=True
 # )
-ExtCommand(
-  'generate_build_info',
-  cmd = ['bash', '-c',
-         'V=$(git rev-parse --short HEAD 2>/dev/null || echo "unknown"); sed -e "s;@CMAKE_CXX_FLAGS@;$CC_FLAGS;"  -e "s;.{CMAKE_CXX_FLAGS_.*};$COMPILATION_MODE;"  -e "s;@GOOGLE_CLOUD_CPP_BUILD_METADATA@;${V};"  < internal/build_info.cc.in >  internal/build_info.cc'
-  ],
-  in_buildenv='//devops:ywz-buildenv-base',
-  work_dir='third_party/google-cloud-cpp/google/cloud/',
-  cmd_env={
-    'CC_FLAGS': '-stdlib=libc++',
-    'COMPILATION_MODE': 'release',  #TODo now
-  },
-  #cachable=True
-)
 
-# cc_library(
-#     name = "google_cloud_cpp_common",
-#     srcs = google_cloud_cpp_common_srcs + ["internal/build_info.cc"],
-#     hdrs = google_cloud_cpp_common_hdrs,
-#     deps = [],
-# )
 CppLib('google_cloud_cpp_common',
        sources=google_cloud_cpp_common_srcs + ['internal/build_info.cc'],
        headers=google_cloud_cpp_common_hdrs,
        deps=[
-         ':generate_build_info',
+         # ':generate_build_info',
        ],
        in_buildenv='//devops:ywz-buildenv-base',
        build_params={

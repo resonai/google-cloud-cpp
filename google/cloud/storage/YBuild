@@ -157,35 +157,21 @@ storage_client_srcs = [
 
 ]
 
-# genrule(
-#     name = "nlohmann_json_include_hierarchy",
-#     srcs = ["@com_github_nlohmann_json_single_header//file"],
-#     outs = ["google/cloud/storage/internal/nlohmann_json.hpp"],
-#     cmd = "sed '20213,20247d' $< >$@",
+# ExtCommand(
+#   'nlohmann_json_include_hierarchy',
+#   cmd = ['bash', '-c', 'curl -L $(cat ../../../bazel/google_cloud_cpp_deps.bzl|grep "github.com/nlohmann/json"|sed "s/.*\(https.*json.hpp\).*/\\1/")|sed 20213,20247d > internal/nlohmann_json.hpp'],
+#   in_buildenv='//devops:ywz-buildenv-base',
+#   work_dir='third_party/google-cloud-cpp/google/cloud/storage/',
+#   cmd_env={
+#   },
+#   #outs = ["internal/nlohmann_json.hpp"],
+#   #cachable=True,
 # )
-
-# cc_library(
-#     name = "nlohmann_json",
-#     hdrs = [":nlohmann_json_include_hierarchy"],
-#     includes = ["."],
-#     deps = [],
-# )
-
-
-ExtCommand(
-  'nlohmann_json_include_hierarchy',
-  cmd = ['bash', '-c', 'curl -L $(cat ../../../bazel/google_cloud_cpp_deps.bzl|grep "github.com/nlohmann/json"|sed "s/.*\(https.*json.hpp\).*/\\1/")|sed 20213,20247d > internal/nlohmann_json.hpp'],
-  in_buildenv='//devops:ywz-buildenv-base',
-  work_dir='third_party/google-cloud-cpp/google/cloud/storage/',
-  cmd_env={
-  },
-  #cachable=True
-)
 CppLib(
   'nlohmann_json',
   sources=[],
   headers = ['internal/nlohmann_json.hpp'],
-  deps = [':nlohmann_json_include_hierarchy'],
+  #deps = [':nlohmann_json_include_hierarchy'],
   in_buildenv='//devops:ywz-buildenv-base',
 )
 
