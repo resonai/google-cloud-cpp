@@ -4,6 +4,21 @@ storage_client_bzl = SourceFileLoader('storage_client_bzl',
 storage_client_hdrs = storage_client_bzl.storage_client_hdrs
 storage_client_srcs = storage_client_bzl.storage_client_srcs
 
+"""
+NOTE(eyal):
+internal/nlohmann_json.hpp is a generated file built with Bazel genrule.
+The following ExtCommand mimic thier genrule.
+The problem is that we don't have cache for ExtCommand so when using it ybt
+will always run it abd build everything dependent on that (which is pratically
+everything in out code base...).
+The current workaround is by adding the generated file to the code base.
+The correct solution seems to be to support know artifacts in ExtCommand and
+cache them.
+A second possible solution is to support targets with local cache but no global
+cache.
+A third is "install" nlohmann_json instaed of fetching it in github - something
+will need to be done about the include path to make it work.
+"""
 # ExtCommand(
 #   'nlohmann_json_include_hierarchy',
 #   cmd = ['bash', '-c', 'curl -L $(cat ../../../bazel/google_cloud_cpp_deps.bzl|grep "github.com/nlohmann/json"|sed "s/.*\(https.*json.hpp\).*/\\1/")|sed 20213,20247d > internal/nlohmann_json.hpp'],

@@ -4,6 +4,19 @@ common_bzl = SourceFileLoader('common_bzl',
 google_cloud_cpp_common_hdrs = common_bzl.google_cloud_cpp_common_hdrs
 google_cloud_cpp_common_srcs = common_bzl.google_cloud_cpp_common_srcs
 
+"""
+NOTE(eyal):
+internal/build_info.cc is a generated file built with Bazel genrule.
+The following ExtCommand mimic thier genrule.
+The problem is that we don't have cache for ExtCommand so when using it ybt
+will always run it abd build everything dependent on that (which is pratically
+everything in out code base...).
+The current workaround is by adding the generated file to the code base.
+The correct solution seems to be to support know artifacts in ExtCommand and
+cache them.
+A second possible solution is to support targets with local cache but no global
+cache.
+"""
 # ExtCommand(
 #   'generate_build_info',
 #   cmd = ['bash', '-c',
