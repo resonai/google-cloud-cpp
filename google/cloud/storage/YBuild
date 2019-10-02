@@ -1,0 +1,64 @@
+from importlib.machinery import SourceFileLoader
+storage_client_bzl = SourceFileLoader('storage_client_bzl',
+                                      'storage_client.bzl').load_module()
+storage_client_hdrs = storage_client_bzl.storage_client_hdrs
+storage_client_srcs = storage_client_bzl.storage_client_srcs
+
+"""
+NOTE(eyal):
+internal/nlohmann_json.hpp is a generated file built with Bazel genrule.
+The following ExtCommand mimic thier genrule.
+The problem is that we don't have cache for ExtCommand so when using it ybt
+will always run it abd build everything dependent on that (which is pratically
+everything in out code base...).
+The current workaround is by adding the generated file to the code base.
+The correct solution seems to be to support know artifacts in ExtCommand and
+cache them.
+A second possible solution is to support targets with local cache but no global
+cache.
+A third is "install" nlohmann_json instaed of fetching it in github - something
+will need to be done about the include path to make it work.
+"""
+# ExtCommand(
+#   'nlohmann_json_include_hierarchy',
+#   cmd = ['bash', '-c', 'curl -L $(cat ../../../bazel/google_cloud_cpp_deps.bzl|grep "github.com/nlohmann/json"|sed "s/.*\(https.*json.hpp\).*/\\1/")|sed 20213,20247d > internal/nlohmann_json.hpp'],
+#   in_buildenv='//devops:ywz-buildenv-base',
+#   work_dir='third_party/google-cloud-cpp/google/cloud/storage/',
+#   cmd_env={
+#   },
+#   #outs = ["internal/nlohmann_json.hpp"],
+#   #cachable=True,
+# )
+CppLib(
+  'nlohmann_json',
+  sources=[],
+  headers = ['internal/nlohmann_json.hpp'],
+  #deps = [':nlohmann_json_include_hierarchy'],
+  in_buildenv='//devops:ywz-buildenv-base',
+)
+
+
+CppLib('storage_client',
+       sources=storage_client_srcs,
+       headers=storage_client_hdrs,
+       deps = [
+         ":nlohmann_json",
+         "..:google_cloud_cpp_common",
+         #"@boringssl//:crypto",
+         #"@boringssl//:ssl",
+         #"@com_github_curl_curl//:curl",
+         #"@com_github_google_crc32c//:crc32c",
+        '//3rdparty/apt:libcurl4-openssl-dev',
+        '//3rdparty/misc:protobuf',
+        '//3rdparty/misc:crc32',
+        '//3rdparty/misc:clang',
+        '//3rdparty/misc:grpc',
+        '//3rdparty/misc:c-ares',
+        #'//3rdparty/misc:benchmark',
+
+       ],
+       in_buildenv='//devops:ywz-buildenv-base',
+       build_params={
+         'extra_compile_flags' : '-Ithird_party/google-cloud-cpp/'
+       },
+)

@@ -23,3 +23,4 @@ github-io-staging/
 
 google/cloud/storage/testbench/__pycache__/
 google/cloud/storage/testbench/*.pyc
+__pycache__
